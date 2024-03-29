@@ -15,7 +15,7 @@ Actions:
         - WorkflowSource
     Environment:
       Connections:
-        - Role: Main-Branch-Infrastructure
+        - Role: CodeCatalystWorkflowDevelopmentRole-summit-devops-2024
           Name: "381345761925"
       Name: TerraformBootstrap
     Configuration:
