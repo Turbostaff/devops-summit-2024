@@ -1,5 +1,5 @@
 provider "aws" {
-  region = "us-east-1" # Replace with your desired AWS region
+  region = "us-east-1"
 }
 
 data "aws_ami" "amazon_linux" {
@@ -10,18 +10,13 @@ data "aws_ami" "amazon_linux" {
     name   = "name"
     values = ["amzn2-ami-hvm-*-x86_64-gp2"]
   }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
 }
 
-resource "aws_instance" "ec2_instance" {
+resource "aws_instance" "t2_micro" {
   ami           = data.aws_ami.amazon_linux.id
   instance_type = "t2.micro"
 
   tags = {
-    Name = "Amazon Linux Instance"
+    Name = "t2-micro-instance"
   }
 }
