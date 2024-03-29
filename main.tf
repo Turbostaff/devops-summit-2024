@@ -1,27 +1,67 @@
+# Configure AWS provider
 provider "aws" {
-  region = "us-east-1" # Replace with your desired AWS region
+  region = "us-east-1" # Replace with your desired region
 }
 
-data "aws_ami" "amazon_linux" {
-  most_recent = true
-  owners      = ["amazon"]
+# Create S3 bucket
+resource "aws_s3_bucket" "my_bucket" {
+  bucket = "my-unique-bucket-name" # Replace with your desired bucket name
+  acl    = "private"
 
-  filter {
-    name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
+  website {
+    index_document = "index.html"
+    error_document = "error.html"
   }
 }
 
-resource "aws_instance" "ec2_instance" {
-  ami           = data.aws_ami.amazon_linux.id
-  instance_type = "t2.micro"
+# Create CloudFront distribution
+resource "aws_cloudfront_distribution" "my_distribution" {
+  origin {
+    domain_name = aws_s3_bucket.my_bucket.website_endpoint
+    origin_id   = "S3-${aws_s3_bucket.my_bucket.id}"
 
-  tags = {
-    Name = "Amazon Linux Instance"
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "http-only"
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }
   }
+
+  enabled             = true
+  default_root_object = "index.html"
+
+  default_cache_behavior {
+    allowed_methods  = ["GET", "HEAD"]
+    cached_methods   = ["GET", "HEAD"]
+    target_origin_id = "S3-${aws_s3_bucket.my_bucket.id}"
+
+    forwarded_values {
+      query_string = false
+
+      cookies {
+        forward = "none"
+      }
+    }
+
+    viewer_protocol_policy = "allow-all"
+    min_ttl                = 0
+    default_ttl            = 3600
+    max_ttl                = 86400
+  }
+
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
+
+  viewer_certificate {
+    cloudfront_default_certificate = true
+  }
+}
+
+# Output CloudFront distribution domain name
+output "cloudfront_domain_name" {
+  value = aws_cloudfront_distribution.my_distribution.domain_name
 }
