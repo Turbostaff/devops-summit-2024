@@ -1,8 +1,27 @@
 provider "aws" {
-  region = "eu-west-1"
+  region = "us-east-1" # Replace with your desired AWS region
 }
 
-resource "aws_s3_bucket" "bucket" {
-  bucket = "reply-devops-summit-2024" # Bucket names must be unique across all AWS users
-  acl    = "private" # Defines who can access the bucket. Options include: private, public-read, public-read-write, aws-exec-read, authenticated-read, and log-delivery-write.
+data "aws_ami" "amazon_linux" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
+resource "aws_instance" "ec2_instance" {
+  ami           = data.aws_ami.amazon_linux.id
+  instance_type = "t2.micro"
+
+  tags = {
+    Name = "Amazon Linux Instance"
+  }
 }
